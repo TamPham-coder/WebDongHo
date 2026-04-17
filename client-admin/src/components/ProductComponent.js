@@ -18,19 +18,36 @@ class Product extends Component {
 
   // Cập nhật 1: Thêm hàm updateProducts sử dụng arrow function
   updateProducts = (products, noPages) => {
-    this.setState({ products: products, noPages: noPages });
+    this.setState({
+      products: Array.isArray(products) ? products : [],
+      noPages: typeof noPages === 'number' ? noPages : 0
+    });
   }
 
   render() {
-    const prods = this.state.products.map((item) => {
+    const productsRaw = this.state.products;
+    const products = Array.isArray(productsRaw)
+      ? productsRaw
+      : productsRaw && typeof productsRaw === 'object'
+      ? Object.values(productsRaw).filter(Boolean)
+      : [];
+
+    if (!Array.isArray(productsRaw) && productsRaw !== undefined) {
+      console.warn('ProductComponent: products state is not an array', productsRaw);
+    }
+
+    const prods = products.filter(Boolean).map((item) => {
+      const categoryName = item?.category?.name || 'N/A';
+      const imageSrc = item?.image ? `data:image/jpg;base64,${item.image}` : '/images/watch1.jpg';
+
       return (
-        <tr key={item._id} className="datatable" onClick={() => this.trItemClick(item)}>
-          <td>{item._id}</td>
-          <td>{item.name}</td>
-          <td>{item.price}</td>
-          <td>{new Date(item.cdate).toLocaleString()}</td>
-          <td>{item.category.name}</td>
-          <td><img src={"data:image/jpg;base64," + item.image} width="100px" height="100px" alt="" /></td>
+        <tr key={item._id || Math.random()} className="datatable" onClick={() => this.trItemClick(item)}>
+          <td>{item?._id || 'N/A'}</td>
+          <td>{item?.name || 'N/A'}</td>
+          <td>{item?.price ?? 'N/A'}</td>
+          <td>{item?.cdate ? new Date(item.cdate).toLocaleString() : 'N/A'}</td>
+          <td>{categoryName}</td>
+          <td><img src={imageSrc} width="100px" height="100px" alt={item?.name || 'Product'} /></td>
         </tr>
       );
     });
@@ -95,13 +112,20 @@ class Product extends Component {
   apiGetProducts(page) {
     const config = { headers: { 'x-access-token': this.context.token } };
     axios.get('http://localhost:3000/api/admin/products?page=' + page, config).then((res) => {
-      const result = res.data;
+      const payload = res.data?.data ?? res.data ?? {};
+      const products = Array.isArray(payload.products)
+        ? payload.products
+        : Array.isArray(payload)
+        ? payload
+        : [];
       this.setState({ 
-        products: result.products,noPages: result.noPages, 
-        curPage: result.curPage 
+        products,
+        noPages: typeof payload.noPages === 'number' ? payload.noPages : 0,
+        curPage: typeof payload.curPage === 'number' ? payload.curPage : page || 1 
       });
     }).catch((error) => {
       console.error("API Error:", error);
+      this.setState({ products: [], noPages: 0 });
     });
   }
 }

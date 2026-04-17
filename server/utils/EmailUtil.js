@@ -2,7 +2,9 @@ const nodemailer = require('nodemailer');
 const MyConstants = require('./MyConstants');
 
 const transporter = nodemailer.createTransport({
-  service: 'hotmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
     user: MyConstants.EMAIL_USER,
     pass: MyConstants.EMAIL_PASS
@@ -25,7 +27,10 @@ const EmailUtil = {
       };
 
       transporter.sendMail(mailOptions, function (err, result) {
-        if (err) reject(err);
+        if (err) {
+          console.error('EmailUtil.send error:', err);
+          return reject(err);
+        }
         resolve(true);
       });
     });

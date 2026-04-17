@@ -13,10 +13,11 @@ class Menu extends Component{
   }
 
   render(){
-    const cates=this.state.categories.map((item)=>{
-      return(
+    const categories = Array.isArray(this.state.categories) ? this.state.categories : [];
+    const cates = categories.map((item) => {
+      return (
         <li key={item._id} className="menu">
-          <Link to={'/product/category/'+item._id}>{item.name}</Link>
+          <Link to={'/product/category/' + item._id}>{item.name}</Link>
         </li>
       );
     });
@@ -66,8 +67,15 @@ class Menu extends Component{
   // apis
   apiGetCategories(){
     axios.get('http://localhost:3000/api/customer/categories').then((res)=>{
-      const result=res.data;
-      this.setState({categories:result});
+      const result = Array.isArray(res.data?.data)
+        ? res.data.data
+        : Array.isArray(res.data)
+        ? res.data
+        : [];
+      this.setState({ categories: result });
+    }).catch((err) => {
+      console.error('Categories error:', err);
+      this.setState({ categories: [] });
     });
   }
 }

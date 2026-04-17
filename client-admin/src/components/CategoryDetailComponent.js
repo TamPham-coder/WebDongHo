@@ -9,13 +9,22 @@ class CategoryDetail extends Component {
     this.state = {
       txtID: "",
       txtName: "",
+      loading: false,
+      error: null,
     };
   }
 
   render() {
+    const { txtID, txtName, loading, error } = this.state;
+
     return (
       <div className="float-right">
         <h2 className="text-center">CATEGORY DETAIL</h2>
+        {error && (
+          <div style={{ backgroundColor: "#f8d7da", padding: "10px", marginBottom: "10px", color: "#721c24" }}>
+            {error}
+          </div>
+        )}
         <form>
           <table>
             <tbody>
@@ -24,7 +33,7 @@ class CategoryDetail extends Component {
                 <td>
                   <input
                     type="text"
-                    value={this.state.txtID}
+                    value={txtID}
                     onChange={(e) => {
                       this.setState({ txtID: e.target.value });
                     }}
@@ -37,7 +46,7 @@ class CategoryDetail extends Component {
                 <td>
                   <input
                     type="text"
-                    value={this.state.txtName}
+                    value={txtName}
                     onChange={(e) => {
                       this.setState({ txtName: e.target.value });
                     }}
@@ -51,126 +60,163 @@ class CategoryDetail extends Component {
                     type="submit"
                     value="ADD NEW"
                     onClick={(e) => this.btnAddClick(e)}
+                    disabled={loading}
                   />
                   <input
                     type="submit"
                     value="UPDATE"
                     onClick={(e) => this.btnUpdateClick(e)}
+                    disabled={loading}
                   />
-                  {/* --- SỬA DÒNG NÀY: Thêm sự kiện onClick cho nút DELETE --- */}
                   <input
                     type="submit"
                     value="DELETE"
                     onClick={(e) => this.btnDeleteClick(e)}
+                    disabled={loading}
                   />
                 </td>
               </tr>
             </tbody>
           </table>
         </form>
+        {loading && <p style={{ textAlign: "center", marginTop: "10px" }}>Đang xử lý...</p>}
       </div>
     );
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.item !== prevProps.item) {
+    if (this.props.item !== prevProps.item && this.props.item) {
       this.setState({
-        txtID: this.props.item._id,
-        txtName: this.props.item.name,
+        txtID: this.props.item._id || "",
+        txtName: this.props.item.name || "",
+        error: null,
+      });
+    } else if (!this.props.item && prevProps.item) {
+      this.setState({
+        txtID: "",
+        txtName: "",
+        error: null,
       });
     }
   }
 
-  // --- CÁC HÀM CŨ (GIỮ NGUYÊN) ---
-  btnAddClick(e) {
+  btnAddClick = (e) => {
     e.preventDefault();
-    const name = this.state.txtName;
+    const name = this.state.txtName.trim();
     if (name) {
       const cate = { name: name };
       this.apiPostCategory(cate);
     } else {
-      alert("Please input name");
+      this.setState({ error: "Vui lòng nhập tên danh mục" });
     }
-  }
+  };
 
-  btnUpdateClick(e) {
+  btnUpdateClick = (e) => {
     e.preventDefault();
-    const id = this.state.txtID;
-    const name = this.state.txtName;
+    const id = this.state.txtID.trim();
+    const name = this.state.txtName.trim();
     if (id && name) {
       const cate = { name: name };
       this.apiPutCategory(id, cate);
     } else {
-      alert("Please input id and name");
+      this.setState({ error: "Vui lòng nhập ID và tên" });
     }
-  }
+  };
 
-  apiPostCategory(cate) {
+  btnDeleteClick = (e) => {
+    e.preventDefault();
+    if (window.confirm("Bạn chắc chắn muốn xóa?")) {
+      const id = this.state.txtID.trim();
+      if (id) {
+        this.apiDeleteCategory(id);
+      } else {
+        this.setState({ error: "Vui lòng chọn danh mục cần xóa" });
+      }
+    }
+  };
+
+  apiPostCategory = (cate) => {
+    this.setState({ loading: true, error: null });
     const config = { headers: { "x-access-token": this.context.token } };
     axios
-      .post("http://localhost:3000/api/admin/categories", cate, config).then((res) => {const result = res.data;
+      .post("http://localhost:3000/api/admin/categories", cate, config)
+      .then((res) => {
+        const result = res.data;
         if (result) {
-          alert("OK BABY!");
+          alert("Thêm thành công!");
+          this.setState({ txtID: "", txtName: "", loading: false });
           this.apiGetCategories();
         } else {
-          alert("SORRY BABY!");
+          this.setState({ error: "Thêm thất bại!", loading: false });
         }
+      })
+      .catch((err) => {
+        this.setState({ 
+          error: err.response?.data?.message || "Lỗi khi thêm",
+          loading: false 
+        });
       });
-  }
+  };
 
-  apiPutCategory(id, cate) {
+  apiPutCategory = (id, cate) => {
+    this.setState({ loading: true, error: null });
     const config = { headers: { "x-access-token": this.context.token } };
     axios
       .put("http://localhost:3000/api/admin/categories/" + id, cate, config)
       .then((res) => {
         const result = res.data;
         if (result) {
-          alert("OK BABY!");
+          alert("Cập nhật thành công!");
+          this.setState({ loading: false });
           this.apiGetCategories();
         } else {
-          alert("SORRY BABY!");
+          this.setState({ error: "Cập nhật thất bại!", loading: false });
         }
+      })
+      .catch((err) => {
+        this.setState({ 
+          error: err.response?.data?.message || "Lỗi khi cập nhật",
+          loading: false 
+        });
       });
-  }
+  };
 
-  apiGetCategories() {
+  apiDeleteCategory = (id) => {
+    this.setState({ loading: true, error: null });
     const config = { headers: { "x-access-token": this.context.token } };
-    axios
-      .get("http://localhost:3000/api/admin/categories", config)
-      .then((res) => {
-        const result = res.data;
-        this.props.updateCategories(result);
-      });
-  }
-  // 1. Xử lý khi bấm nút DELETE
-  btnDeleteClick(e) {
-    e.preventDefault();
-    // Hiện thông báo xác nhận: Are you sure?
-    if (window.confirm("ARE YOU SURE?")) {
-      const id = this.state.txtID;
-      if (id) {
-        this.apiDeleteCategory(id);
-      } else {
-        alert("Please input id");
-      }
-    }
-  }
-
-  // 2. Gọi API Xóa
-  apiDeleteCategory(id) {
-    const config = { headers: { "x-access-token": this.context.token } };
-    // Gọi method DELETE lên Server
     axios
       .delete("http://localhost:3000/api/admin/categories/" + id, config)
       .then((res) => {
         const result = res.data;
         if (result) {
-          alert("OK BABY!");
-          this.apiGetCategories(); // Load lại danh sách
+          alert("Xóa thành công!");
+          this.setState({ txtID: "", txtName: "", loading: false });
+          this.apiGetCategories();
         } else {
-          alert("SORRY BABY!");
+          this.setState({ error: "Xóa thất bại!", loading: false });
         }
+      })
+      .catch((err) => {
+        this.setState({ 
+          error: err.response?.data?.message || "Lỗi khi xóa",
+          loading: false 
+        });
       });
-  }
+  };
+
+  apiGetCategories = () => {
+    const config = { headers: { "x-access-token": this.context.token } };
+    axios
+      .get("http://localhost:3000/api/admin/categories", config)
+      .then((res) => {
+        const result = res.data;
+        if (result && this.props.updateCategories) {
+          this.props.updateCategories(result);
+        }
+      })
+      .catch((err) => {
+        this.setState({ error: "Lỗi tải danh sách" });
+      });
+  };
 }
 export default CategoryDetail;

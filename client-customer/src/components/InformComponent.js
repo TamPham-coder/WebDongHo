@@ -8,7 +8,6 @@ class Inform extends Component {
   render() {
     return (
       <div className="border-bottom">
-
         <div className="float-left">
           {this.context.token === '' ? (
             <div>
@@ -16,7 +15,7 @@ class Inform extends Component {
             </div>
           ) : (
             <div>
-              Hello <b>{this.context.customer.name}</b> |{' '}
+              Hello <b>{this.context.customer?.name || this.context.customer?.username || "User"}</b> |{' '}
               <Link to="/home" onClick={() => this.lnkLogoutClick()}>Logout</Link> |{' '}
               <Link to="/myprofile">My profile</Link> |{' '}
               <Link to="/myorders">My orders</Link>
@@ -25,20 +24,21 @@ class Inform extends Component {
         </div>
 
         <div className="float-right">
-          <Link to="/mycart">My cart</Link> have <b>{this.context.mycart.length}</b> items
+          <Link to="/mycart">My cart</Link> have <b>{this.context.mycart?.length || 0}</b> items
         </div>
 
         <div className="float-clear"></div>
-
       </div>
     );
   }
 
   // event-handlers
   lnkLogoutClick() {
-    this.context.setToken('');
-    this.context.setCustomer(null);
-    this.context.setMycart([]);
+    if (window.confirm('Are you sure you want to logout?')) {
+      this.context.setToken('');
+      this.context.setCustomer(null);
+      this.context.setMycart([]);
+    }
   }
 }
 

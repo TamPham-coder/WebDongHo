@@ -4,80 +4,138 @@ import MyContext from '../contexts/MyContext';
 import withRouter from '../utils/withRouter';
 
 class Login extends Component {
-static contextType = MyContext; // using this.context to access global state
+  static contextType = MyContext; // using this.context to access global state
 
-constructor(props) {
-super(props);
-this.state = {
-txtUsername: 'sonkk',
-txtPassword: '123'
-};
-}
+  constructor(props) {
+    super(props);
+    this.state = {
+      txtUsername: 'sonkk',
+      txtPassword: '123',
+      loading: false,
+      error: null
+    };
+  }
 
-render() {
-return (
-<div className="align-center">
-<h2 className="text-center">CUSTOMER LOGIN</h2>
-<form>
-<table className="align-center">
-<tbody>
+  render() {
+    const { txtUsername, txtPassword, loading, error } = this.state;
 
-<tr>
-<td>Username</td>
-<td>
-<input type="text" value={this.state.txtUsername} onChange={(e) => { this.setState({ txtUsername: e.target.value }) }} />
-</td>
-</tr>
+    return (
+      <div className="align-center">
+        <h2 className="text-center">CUSTOMER LOGIN</h2>
+        
+        {error && (
+          <div style={{ 
+            backgroundColor: "#f8d7da", 
+            color: "#721c24", 
+            padding: "10px", 
+            marginBottom: "20px", 
+            borderRadius: "4px",
+            textAlign: "center"
+          }}>
+            {error}
+          </div>
+        )}
 
-<tr>
-<td>Password</td>
-<td>
-<input type="password" value={this.state.txtPassword} onChange={(e) => { this.setState({ txtPassword: e.target.value }) }} />
-</td>
-</tr>
+        <form>
+          <table className="align-center">
+            <tbody>
+              <tr>
+                <td>Username</td>
+                <td>
+                  <input 
+                    type="text" 
+                    value={txtUsername} 
+                    onChange={(e) => { this.setState({ txtUsername: e.target.value, error: null }) }} 
+                    disabled={loading}
+                    style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td>Password</td>
+                <td>
+                  <input 
+                    type="password" 
+                    value={txtPassword} 
+                    onChange={(e) => { this.setState({ txtPassword: e.target.value, error: null }) }} 
+                    disabled={loading}
+                    style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td></td>
+                <td>
+                  <input 
+                    type="submit" 
+                    value={loading ? "LOGGING IN..." : "LOGIN"} 
+                    onClick={(e) => this.btnLoginClick(e)} 
+                    disabled={loading}
+                    style={{ 
+                      padding: "10px 20px", 
+                      backgroundColor: loading ? "#ccc" : "#007bff", 
+                      color: "white", 
+                      border: "none", 
+                      borderRadius: "4px", 
+                      cursor: loading ? "not-allowed" : "pointer"
+                    }}
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </form>
+      </div>
+    );
+  }
 
-<tr>
-<td></td>
-<td>
-<input type="submit" value="LOGIN" onClick={(e) => this.btnLoginClick(e)} />
-</td>
-</tr>
+  // event-handlers
+  btnLoginClick(e) {
+    e.preventDefault();
+    const username = this.state.txtUsername.trim();
+    const password = this.state.txtPassword.trim();
+    
+    if (!username || !password) {
+      this.setState({ error: 'Please input username and password' });
+      return;
+    }
 
-</tbody>
-</table>
-</form>
-</div>
-);
-}
+    const account = { username: username, password: password };
+    this.apiLogin(account);
+  }
 
-// event-handlers
-btnLoginClick(e) {
-e.preventDefault();
-const username = this.state.txtUsername;
-const password = this.state.txtPassword;
+  // apis
+  apiLogin(account) {
+    this.setState({ loading: true, error: null });
+    axios
+      .post('http://localhost:3000/api/customer/login', account)
+      .then((res) => {
+        const result = res.data;
+        const token = result.token || result.data?.token || result.data?.data?.token;
+        let customer = result.customer || result.data?.customer || result.data?.data?.customer;
 
-if (username && password) {
-const account = { username: username, password: password };
-this.apiLogin(account);
-} else {
-alert('Please input username and password');
-}
-}
+        if (customer && !customer.password) {
+          customer = { ...customer, password: account.password };
+        }
 
-// apis
-apiLogin(account) {
-axios.post('http://localhost:3000/api/customer/login', account).then((res) => {
-const result = res.data;
-
-if (result.success === true) {
-this.context.setToken(result.token);
-this.context.setCustomer(result.customer);
-this.props.navigate('/home');
-} else {
-alert(result.message);
-}
-});
-}
+        if (result.success === true && token && customer) {
+          this.context.setToken(token);
+          this.context.setCustomer(customer);
+          this.setState({ txtUsername: '', txtPassword: '', loading: false }, () => {
+            this.props.navigate('/home');
+          });
+        } else {
+          this.setState({ error: result.message || 'Login failed', loading: false });
+        }
+      })
+      .catch((err) => {
+        console.error('Login error:', err);
+        this.setState({ 
+          error: err.response?.data?.message || 'Network error. Please try again.',
+          loading: false 
+        });
+      });
+  }
 }
 
 export default withRouter(Login);

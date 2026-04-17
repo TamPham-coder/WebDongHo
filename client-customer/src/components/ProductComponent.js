@@ -7,32 +7,59 @@ class Product extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      products: []
+      products: [],
+      loading: false,
+      error: null
     };
   }
 
   render() {
-    const prods = this.state.products.map((item) => {
+    const { products, loading, error } = this.state;
+    const productList = Array.isArray(products) ? products : [];
+
+    if (loading) {
       return (
-        <div key={item._id} className="inline">
-          <figure>
-            <Link to={"/product/" + item._id}>
-              <img
-                src={"data:image/jpg;base64," + item.image}
-                width="300px"
-                height="300px"
-                alt=""
-              />
-            </Link>
-            <figcaption className="text-center">
-              {item.name}
-              <br />
-              Price: {item.price}
-            </figcaption>
-          </figure>
+        <div className="text-center" style={{ padding: "40px" }}>
+          Đang tải sản phẩm...
         </div>
       );
-    });
+    }
+
+    if (error) {
+      return (
+        <div className="text-center" style={{ padding: "40px", color: "#ff6b6b" }}>
+          {error}
+        </div>
+      );
+    }
+
+    if (productList.length === 0) {
+      return (
+        <div className="text-center" style={{ padding: "40px" }}>
+          Không có sản phẩm nào.
+        </div>
+      );
+    }
+
+    const prods = productList.map((item) => (
+      <div key={item._id} className="inline">
+        <figure>
+          <Link to={"/product/" + item._id}>
+            <img
+              src={"data:image/jpg;base64," + item.image}
+              width="300px"
+              height="300px"
+              alt={item.name}
+            />
+          </Link>
+          <figcaption className="text-center">
+            {item.name}
+            <br />
+            Price: {item.price}
+          </figcaption>
+        </figure>
+      </div>
+    ));
 
     return (
       <div className="text-center">
@@ -42,43 +69,90 @@ class Product extends Component {
     );
   }
 
-  // chạy khi component mở lần đầu
   componentDidMount() {
-    const params = this.props.params;
+    this.loadProducts(this.props.params);
+  }
+
+  componentDidUpdate(prevProps) {
+    const { params } = this.props;
+    if (params.cid !== prevProps.params.cid || params.keyword !== prevProps.params.keyword) {
+      this.loadProducts(params);
+    }
+  }
+
+  loadProducts(params) {
     if (params.cid) {
       this.apiGetProductsByCatID(params.cid);
     } else if (params.keyword) {
       this.apiGetProductsByKeyword(params.keyword);
+    } else {
+      this.apiGetAllProducts();
     }
   }
 
-  // chạy khi chuyển danh mục hoặc tìm kiếm mới
-  componentDidUpdate(prevProps) {
-    const params = this.props.params;
-
-    if (params.cid && params.cid !== prevProps.params.cid) {
-      this.apiGetProductsByCatID(params.cid);
-    } else if (params.keyword && params.keyword !== prevProps.params.keyword) {
-      this.apiGetProductsByKeyword(params.keyword);
-    }
+  apiGetAllProducts() {
+    this.setState({ loading: true, error: null });
+    axios
+      .get("http://localhost:3000/api/customer/products")
+      .then((res) => {
+        const products = Array.isArray(res.data)
+          ? res.data
+          : Array.isArray(res.data?.data)
+          ? res.data.data
+          : [];
+        this.setState({ products, loading: false });
+      })
+      .catch((err) => {
+        console.error(err);
+        this.setState({
+          error: "Lỗi tải sản phẩm",
+          products: [],
+          loading: false
+        });
+      });
   }
 
-  // --- APIs ---
   apiGetProductsByCatID(cid) {
+    this.setState({ loading: true, error: null });
     axios
       .get("http://localhost:3000/api/customer/products/category/" + cid)
       .then((res) => {
-        const result = res.data;
-        this.setState({ products: result });
+        const products = Array.isArray(res.data)
+          ? res.data
+          : Array.isArray(res.data?.data)
+          ? res.data.data
+          : [];
+        this.setState({ products, loading: false });
+      })
+      .catch((err) => {
+        console.error(err);
+        this.setState({
+          error: "Lỗi tải sản phẩm theo danh mục",
+          products: [],
+          loading: false
+        });
       });
   }
 
   apiGetProductsByKeyword(keyword) {
+    this.setState({ loading: true, error: null });
     axios
       .get("http://localhost:3000/api/customer/products/search/" + keyword)
       .then((res) => {
-        const result = res.data;
-        this.setState({ products: result });
+        const products = Array.isArray(res.data)
+          ? res.data
+          : Array.isArray(res.data?.data)
+          ? res.data.data
+          : [];
+        this.setState({ products, loading: false });
+      })
+      .catch((err) => {
+        console.error(err);
+        this.setState({
+          error: "Lỗi tìm kiếm sản phẩm",
+          products: [],
+          loading: false
+        });
       });
   }
 }

@@ -68,8 +68,16 @@ class Category extends Component {
     axios
       .get("http://localhost:3000/api/admin/categories", config)
       .then((res) => {
-        const result = res.data;
+        const result = Array.isArray(res.data?.data)
+          ? res.data.data
+          : Array.isArray(res.data)
+          ? res.data
+          : [];
         this.setState({ categories: result });
+      })
+      .catch((err) => {
+        console.error('Get categories error:', err);
+        this.setState({ categories: [] });
       });
   }
 }

@@ -6,8 +6,10 @@ class Menu extends Component {
   static contextType = MyContext;
 
   lnkLogoutClick = () => {
-    this.context.setToken('');
-    this.context.setUsername('');
+    if (window.confirm('Are you sure you want to logout?')) {
+      this.context.setToken('');
+      this.context.setUsername('');
+    }
   }
 
   render() {
@@ -23,7 +25,7 @@ class Menu extends Component {
           </ul>
         </div>
         <div className="float-right">
-          Hello <b>{this.context.username}</b> <Link to='/admin/home' onClick={this.lnkLogoutClick}>Logout</Link>
+          Hello <b>{this.context.username}</b> | <a href="#" onClick={this.lnkLogoutClick}>Logout</a>
         </div>
         <div className="float-clear" />
       </div>

@@ -12,30 +12,33 @@ class Home extends Component {
   }
 
   render() {
-    const newprods = this.state.newprods.map((item) => {
+    const newprods = Array.isArray(this.state.newprods) ? this.state.newprods : [];
+    const hotprods = Array.isArray(this.state.hotprods) ? this.state.hotprods : [];
+
+    const newprodsList = newprods.map((item) => {
       return (
-        <div key={item._id} className="inline">
+        <div key={item._id || Math.random()} className="inline">
           <figure>
-            <Link to={'/product/' + item._id}>
-              <img src={'data:image/jpg;base64,' + item.image} width="300px" height="300px" alt="" />
+            <Link to={'/product/' + (item._id || '')}>
+              <img src={item.image ? 'data:image/jpg;base64,' + item.image : '/images/watch1.jpg'} width="300px" height="300px" alt={item.name || 'Product'} />
             </Link>
             <figcaption className="text-center">
-              {item.name}<br />Price: {item.price}
+              {item.name || 'Unknown'}<br />Price: {item.price ?? 'N/A'}
             </figcaption>
           </figure>
         </div>
       );
     });
 
-    const hotprods = this.state.hotprods.map((item) => {
+    const hotprodsList = hotprods.map((item) => {
       return (
-        <div key={item._id} className="inline">
+        <div key={item._id || Math.random()} className="inline">
           <figure>
-            <Link to={'/product/' + item._id}>
-              <img src={'data:image/jpg;base64,' + item.image} width="300px" height="300px" alt="" />
+            <Link to={'/product/' + (item._id || '')}>
+              <img src={item.image ? 'data:image/jpg;base64,' + item.image : '/images/watch1.jpg'} width="300px" height="300px" alt={item.name || 'Product'} />
             </Link>
             <figcaption className="text-center">
-              {item.name}<br />Price: {item.price}
+              {item.name || 'Unknown'}<br />Price: {item.price ?? 'N/A'}
             </figcaption>
           </figure>
         </div>
@@ -47,13 +50,13 @@ class Home extends Component {
 
         <div className="align-center">
           <h2 className="text-center">NEW PRODUCTS</h2>
-          {newprods}
+          {newprodsList}
         </div>
 
-        {this.state.hotprods.length > 0 ?
+        {hotprods.length > 0 ?
           <div className="align-center">
             <h2 className="text-center">HOT PRODUCTS</h2>
-            {hotprods}
+            {hotprodsList}
           </div>
           : <div />
         }
@@ -70,15 +73,29 @@ class Home extends Component {
   // apis
   apiGetNewProducts() {
     axios.get('http://localhost:3000/api/customer/products/new').then((res) => {
-      const result = res.data;
+      const result = Array.isArray(res.data?.data)
+        ? res.data.data
+        : Array.isArray(res.data)
+        ? res.data
+        : [];
       this.setState({ newprods: result });
+    }).catch((err) => {
+      console.error('New products error:', err);
+      this.setState({ newprods: [] });
     });
   }
 
   apiGetHotProducts() {
     axios.get('http://localhost:3000/api/customer/products/hot').then((res) => {
-      const result = res.data;
+      const result = Array.isArray(res.data?.data)
+        ? res.data.data
+        : Array.isArray(res.data)
+        ? res.data
+        : [];
       this.setState({ hotprods: result });
+    }).catch((err) => {
+      console.error('Hot products error:', err);
+      this.setState({ hotprods: [] });
     });
   }
 }

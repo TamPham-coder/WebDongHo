@@ -25,7 +25,7 @@ router.get('/products/new', async function (req, res) {
 });
 
 router.get('/products/hot', async function (req, res) {
-  const products = await ProductDAO.selectTopHot(3);
+  const products = await ProductDAO.selectTopHot(4);
   res.json(products);
 });
 
@@ -88,8 +88,18 @@ router.post('/signup', async function (req, res) {
 // customer active
 router.post('/active', async function (req, res) {
   const { id, token } = req.body;
+
+  if (!id || !token) {
+    return res.json({ success: false, message: 'ID and token are required' });
+  }
+
   const result = await CustomerDAO.active(id, token, 1);
-  res.json(result);
+
+  if (result) {
+    return res.json({ success: true, message: 'Account activated successfully', data: result });
+  }
+
+  return res.json({ success: false, message: 'Activation failed. Invalid ID or token.' });
 });
 
 // customer login
@@ -102,11 +112,21 @@ router.post('/login', async function (req, res) {
     if (customer) {
       if (customer.active === 1) {
         const token = JwtUtil.genToken();
+        const loggedCustomer = {
+          _id: customer._id,
+          username: customer.username,
+          password: customer.password,
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email,
+          active: customer.active,
+          token: customer.token
+        };
         res.json({
           success: true,
           message: 'Authentication successful',
           token,
-customer
+          customer: loggedCustomer
         });
       } else {
         res.json({ success: false, message: 'Account is deactive' });
@@ -127,12 +147,36 @@ router.get('/token', JwtUtil.checkToken, function (req, res) {
 
 // myprofile
 router.put('/customers/:id', JwtUtil.checkToken, async function (req, res) {
-  const { username, password, name, phone, email } = req.body;
-  const _id = req.params.id;
+  try {
+    const { username, password, name, phone, email } = req.body;
+    const _id = req.params.id;
 
-  const customer = { _id, username, password, name, phone, email };
-  const result = await CustomerDAO.update(customer);
-  res.json(result);
+    console.log('Update request received:', { _id, username, hasPassword: !!password, name, phone, email });
+
+    if (!username || !name || !phone || !email) {
+      console.log('Validation failed: missing required fields');
+      return res.status(400).json({ success: false, message: 'Username, name, phone, and email are required' });
+    }
+
+    const updateData = { username, name, phone, email };
+    if (password) {
+      updateData.password = password;
+    }
+
+    const customer = { _id, ...updateData };
+    console.log('Updating with data:', customer);
+    const result = await CustomerDAO.update(customer);
+
+    console.log('Update result:', result);
+    if (result) {
+      res.json({ success: true, message: 'Profile updated successfully', data: result });
+    } else {
+      res.status(400).json({ success: false, message: 'Failed to update profile' });
+    }
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+  }
 });
 
 // mycart - checkout

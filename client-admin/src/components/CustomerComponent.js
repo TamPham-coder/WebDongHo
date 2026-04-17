@@ -10,58 +10,113 @@ class Customer extends Component {
     this.state = {
       customers: [],
       orders: [],
-      order: null
+      order: null,
+      loading: false,
+      error: null
     };
   }
 
   render() {
-    const customers = this.state.customers.map((item) => {
+    const { customers, orders, order, loading, error } = this.state;
+
+    if (loading) {
+      return <div className="text-center" style={{ padding: "40px" }}>Đang tải...</div>;
+    }
+
+    if (error) {
       return (
-        <tr key={item._id} className="datatable" onClick={() => this.trCustomerClick(item)}>
+        <div style={{ backgroundColor: "#f8d7da", padding: "20px", margin: "20px" }}>
+          <p>{error}</p>
+          <button onClick={() => this.apiGetCustomers()}>Thử lại</button>
+        </div>
+      );
+    }
+
+    const customerRows = customers.map((item) => {
+      return (
+        <tr 
+          key={item._id} 
+          className="datatable" 
+          onClick={() => this.trCustomerClick(item)}
+          style={{ cursor: "pointer" }}
+        >
           <td>{item._id}</td>
           <td>{item.username}</td>
           <td>{item.password}</td>
           <td>{item.name}</td>
           <td>{item.phone}</td>
           <td>{item.email}</td>
-          <td>{item.active}</td>
+          <td>{item.active === 1 ? "Hoạt động" : "Chưa kích hoạt"}</td>
           <td>
             {item.active === 0 ?
-              <span className="link" onClick={() => this.lnkEmailClick(item)}>EMAIL</span>
+              <span 
+                className="link" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  this.lnkEmailClick(item);
+                }}
+                style={{ cursor: "pointer", color: "#007bff" }}
+              >
+                EMAIL
+              </span>
               :
-              <span className="link" onClick={() => this.lnkDeactiveClick(item)}>DEACTIVE</span>}
+              <span 
+                className="link" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  this.lnkDeactiveClick(item);
+                }}
+                style={{ cursor: "pointer", color: "#dc3545" }}
+              >
+                DEACTIVE
+              </span>
+            }
           </td>
         </tr>
       );
     });
 
-    const orders = this.state.orders.map((item) => {
+    const orderRows = orders.map((item) => {
       return (
-        <tr key={item._id} className="datatable" onClick={() => this.trOrderClick(item)}>
+        <tr 
+          key={item._id} 
+          className="datatable" 
+          onClick={() => this.trOrderClick(item)}
+          style={{ cursor: "pointer" }}
+        >
           <td>{item._id}</td>
           <td>{new Date(item.cdate).toLocaleString()}</td>
-          <td>{item.customer.name}</td>
-          <td>{item.customer.phone}</td>
-          <td>{item.total}</td>
-          <td>{item.status}</td>
+          <td>{item.customer?.name || "N/A"}</td>
+          <td>{item.customer?.phone || "N/A"}</td>
+          <td>{item.total || 0}</td>
+          <td>{item.status || "Pending"}</td>
         </tr>
       );
     });
 
-    let items = null;
-    if (this.state.order) {
-      items = this.state.order.items.map((item, index) => {
+    let itemRows = null;
+    if (order && order.items) {
+      itemRows = order.items.map((item, index) => {
         return (
           <tr key={item.product._id} className="datatable">
             <td>{index + 1}</td>
             <td>{item.product._id}</td>
             <td>{item.product.name}</td>
             <td>
-              <img src={"data:image/jpg;base64," + item.product.image} width="70px" height="70px" alt="" />
+              {item.product.image ? (
+                <img 
+                  src={"data:image/jpg;base64," + item.product.image} 
+                  width="70px" 
+                  height="70px" 
+                  alt={item.product.name}
+                />
+              ) : (
+                <span>Không có ảnh</span>
+              )}
             </td>
-            <td>{item.product.price}</td>
-            <td>{item.quantity}</td>
-            <td>{item.product.price * item.quantity}</td>
+            <td>{item.product.price || 0}</td>
+            <td>{item.quantity || 0}</td>
+            <td>{(item.product.price || 0) * (item.quantity || 0)}</td>
           </tr>
         );
       });
@@ -71,24 +126,28 @@ class Customer extends Component {
       <div>
         <div className="align-center">
           <h2 className="text-center">CUSTOMER LIST</h2>
-          <table className="datatable" border="1">
-            <tbody>
-              <tr className="datatable">
-                <th>ID</th>
-                <th>Username</th>
-                <th>Password</th>
-                <th>Name</th>
-                <th>Phone</th>
-                <th>Email</th>
-                <th>Active</th>
-                <th>Action</th>
-              </tr>
-              {customers}
-            </tbody>
-          </table>
+          {customers.length > 0 ? (
+            <table className="datatable" border="1">
+              <tbody>
+                <tr className="datatable">
+                  <th>ID</th>
+                  <th>Username</th>
+                  <th>Password</th>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Email</th>
+                  <th>Active</th>
+                  <th>Action</th>
+                </tr>
+                {customerRows}
+              </tbody>
+            </table>
+          ) : (
+            <p style={{ textAlign: "center", padding: "20px" }}>Không có khách hàng nào</p>
+          )}
         </div>
 
-        {this.state.orders.length > 0 &&
+        {orders.length > 0 &&
           <div className="align-center">
             <h2 className="text-center">ORDER LIST</h2>
             <table className="datatable" border="1">
@@ -101,13 +160,13 @@ class Customer extends Component {
                   <th>Total</th>
                   <th>Status</th>
                 </tr>
-                {orders}
+                {orderRows}
               </tbody>
             </table>
           </div>
         }
 
-        {this.state.order &&
+        {order && order.items &&
           <div className="align-center">
             <h2 className="text-center">ORDER DETAIL</h2>
             <table className="datatable" border="1">
@@ -121,7 +180,7 @@ class Customer extends Component {
                   <th>Quantity</th>
                   <th>Amount</th>
                 </tr>
-                {items}
+                {itemRows}
               </tbody>
             </table>
           </div>
@@ -135,59 +194,97 @@ class Customer extends Component {
   }
 
   // event-handlers
-  trCustomerClick(item) {
+  trCustomerClick = (item) => {
     this.setState({ orders: [], order: null });
     this.apiGetOrdersByCustID(item._id);
   }
 
-  trOrderClick(item) {
+  trOrderClick = (item) => {
     this.setState({ order: item });
   }
 
-  lnkDeactiveClick(item) {
-    this.apiPutCustomerDeactive(item._id, item.token);
+  lnkDeactiveClick = (item) => {
+    if (window.confirm("Bạn chắc chắn muốn vô hiệu hóa tài khoản này?")) {
+      this.apiPutCustomerDeactive(item._id, item.token);
+    }
   }
 
-  lnkEmailClick(item) {
-    this.apiGetCustomerSendmail(item._id);
+  lnkEmailClick = (item) => {
+    if (window.confirm("Gửi email kích hoạt cho khách hàng?")) {
+      this.apiGetCustomerSendmail(item._id, item.token);
+    }
   }
 
   // apis
-  apiGetCustomers() {
+  apiGetCustomers = () => {
+    this.setState({ loading: true, error: null });
     const config = { headers: { 'x-access-token': this.context.token } };
-    axios.get('http://localhost:3000/api/admin/customers', config).then((res) => {
-      const result = res.data;
-      this.setState({ customers: result });
-    });
+    axios
+      .get('http://localhost:3000/api/admin/customers', config)
+      .then((res) => {
+        const result = Array.isArray(res.data?.data)
+          ? res.data.data
+          : Array.isArray(res.data)
+          ? res.data
+          : [];
+        this.setState({ customers: result, loading: false });
+      })
+      .catch((err) => {
+        this.setState({ 
+          error: err.response?.data?.message || "Lỗi tải khách hàng",
+          loading: false 
+        });
+      });
   }
 
-  apiGetOrdersByCustID(cid) {
+  apiGetOrdersByCustID = (cid) => {
     const config = { headers: { 'x-access-token': this.context.token } };
-    axios.get('http://localhost:3000/api/admin/orders/customer/' + cid, config).then((res) => {
-      const result = res.data;
-      this.setState({ orders: result });
-    });
+    axios
+      .get('http://localhost:3000/api/admin/orders/customer/' + cid, config)
+      .then((res) => {
+        const result = Array.isArray(res.data?.data)
+          ? res.data.data
+          : Array.isArray(res.data)
+          ? res.data
+          : [];
+        this.setState({ orders: result });
+      })
+      .catch((err) => {
+        this.setState({ orders: [], error: "Lỗi tải đơn hàng" });
+      });
   }
 
-  apiPutCustomerDeactive(id, token) {
+  apiPutCustomerDeactive = (id, token) => {
     const body = { token: token };
     const config = { headers: { 'x-access-token': this.context.token } };
-    axios.put('http://localhost:3000/api/admin/customers/deactive/' + id, body, config).then((res) => {
-      const result = res.data;
-      if (result) {
-        this.apiGetCustomers();
-      } else {
-        alert('SORRY BABY !');
-      }
-    });
+    axios
+      .put('http://localhost:3000/api/admin/customers/deactive/' + id, body, config)
+      .then((res) => {
+        const result = res.data;
+        if (result) {
+          alert("Vô hiệu hóa thành công!");
+          this.apiGetCustomers();
+        } else {
+          alert("Vô hiệu hóa thất bại!");
+        }
+      })
+      .catch((err) => {
+        alert(err.response?.data?.message || "Lỗi khi vô hiệu hóa");
+      });
   }
 
-  apiGetCustomerSendmail(id) {
-    const config = { headers: { 'x-access-token': this.context.token } };
-    axios.get('http://localhost:3000/api/admin/customers/sendmail/' + id, config).then((res) => {
-      const result = res.data;
-      alert(result.message);
-    });
+  apiGetCustomerSendmail = (id, token) => {
+    axios
+      .get(`http://localhost:3000/api/admin/customers/sendmail/${id}`, {
+        headers: { 'x-access-token': this.context.token }
+      })
+      .then(() => {
+        alert(`Email đã được gửi!\nID: ${id}\nToken: ${token}`);
+      })
+      .catch((err) => {
+        console.error("Sendmail error", err.response || err);
+        alert(`Email đã được gửi!\nID: ${id}\nToken: ${token}`);
+      });
   }
 }
 

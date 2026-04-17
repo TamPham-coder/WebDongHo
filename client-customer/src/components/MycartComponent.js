@@ -7,29 +7,50 @@ import withRouter from '../utils/withRouter';
 class Mycart extends Component {
   static contextType = MyContext;
 
+  constructor(props) {
+    super(props);
+    this.state = {
+      loading: false,
+      error: null
+    };
+  }
+
   render() {
-    const mycart = this.context.mycart.map((item, index) => {
+    const { loading, error } = this.state;
+    const mycart = this.context.mycart;
+
+    if (mycart.length === 0) {
+      return (
+        <div className="align-center">
+          <h2 className="text-center">ITEM LIST</h2>
+          <p style={{ textAlign: "center", padding: "20px" }}>Your cart is empty</p>
+        </div>
+      );
+    }
+
+    const cartItems = mycart.map((item, index) => {
       return (
         <tr key={item.product._id} className="datatable">
           <td>{index + 1}</td>
           <td>{item.product._id}</td>
           <td>{item.product.name}</td>
-          <td>{item.product.category.name}</td>
+          <td>{item.product.category?.name || "N/A"}</td>
           <td>
             <img
               src={'data:image/jpg;base64,' + item.product.image}
               width="70px"
               height="70px"
-              alt=""
+              alt={item.product.name}
             />
           </td>
-          <td>{item.product.price}</td>
-          <td>{item.quantity}</td>
-          <td>{item.product.price * item.quantity}</td>
+          <td>{item.product.price || 0}</td>
+          <td>{item.quantity || 0}</td>
+          <td>{(item.product.price || 0) * (item.quantity || 0)}</td>
           <td>
             <span
               className="link"
               onClick={() => this.lnkRemoveClick(item.product._id)}
+              style={{ cursor: "pointer" }}
             >
               Remove
             </span>
@@ -41,6 +62,13 @@ class Mycart extends Component {
     return (
       <div className="align-center">
         <h2 className="text-center">ITEM LIST</h2>
+        
+        {error && (
+          <div style={{ backgroundColor: "#f8d7da", padding: "10px", marginBottom: "10px", color: "#721c24" }}>
+            {error}
+          </div>
+        )}
+
         <table className="datatable" border="1">
           <tbody>
             <tr className="datatable">
@@ -55,7 +83,7 @@ class Mycart extends Component {
               <th>Action</th>
             </tr>
 
-            {mycart}
+            {cartItems}
 
             <tr>
               <td colSpan="6"></td>
@@ -65,8 +93,13 @@ class Mycart extends Component {
                 <span
                   className="link"
                   onClick={() => this.lnkCheckoutClick()}
+                  style={{ 
+                    cursor: loading ? "not-allowed" : "pointer",
+                    color: loading ? "#ccc" : "#007bff"
+                  }}
+                  disabled={loading}
                 >
-                  CHECKOUT
+                  {loading ? "CHECKING OUT..." : "CHECKOUT"}
                 </span>
               </td>
             </tr>
@@ -78,12 +111,14 @@ class Mycart extends Component {
 
   // event-handlers
   lnkRemoveClick(id) {
-    const mycart = this.context.mycart;
-    const index = mycart.findIndex((x) => x.product._id === id);
+    if (window.confirm('Are you sure you want to remove this item?')) {
+      const mycart = this.context.mycart;
+      const index = mycart.findIndex((x) => x.product._id === id);
 
-    if (index !== -1) {
-      mycart.splice(index, 1);
-      this.context.setMycart(mycart);
+      if (index !== -1) {
+        mycart.splice(index, 1);
+        this.context.setMycart(mycart);
+      }
     }
   }
 
@@ -107,22 +142,31 @@ class Mycart extends Component {
 
   // apis
   apiCheckout(total, items, customer) {
+    this.setState({ loading: true, error: null });
     const body = { total: total, items: items, customer: customer };
     const config = {
       headers: { 'x-access-token': this.context.token }
     };
 
-    axios.post('http://localhost:3000/api/customer/checkout', body, config).then((res) => {
-      const result = res.data;
-
-      if (result) {
-        alert('OK BABY!');
-        this.context.setMycart([]);
-        this.props.navigate('/home');
-      } else {
-        alert('SORRY BABY!');
-      }
-    });
+    axios
+      .post('http://localhost:3000/api/customer/checkout', body, config)
+      .then((res) => {
+        const result = res.data;
+        if (result) {
+          alert('OK BABY!');
+          this.context.setMycart([]);
+          this.props.navigate('/home');
+        } else {
+          this.setState({ error: 'Checkout failed', loading: false });
+        }
+      })
+      .catch((err) => {
+        console.error('Checkout error:', err);
+        this.setState({ 
+          error: err.response?.data?.message || 'Checkout failed. Please try again.',
+          loading: false 
+        });
+      });
   }
 }
 

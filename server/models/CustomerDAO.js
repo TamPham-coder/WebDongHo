@@ -17,7 +17,7 @@ const CustomerDAO = {
   },
 
   async active(_id, token, active) {
-    const query = { _id: _id, token: token };
+    const query = token ? { _id: _id, token: token } : { _id: _id };
     const newvalues = { active: active };
     const result = await Models.Customer.findOneAndUpdate(query, newvalues, { new: true });
     return result;
