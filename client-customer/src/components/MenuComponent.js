@@ -66,7 +66,7 @@ class Menu extends Component{
 
   // apis
   apiGetCategories(){
-    axios.get('http://localhost:3000/api/customer/categories').then((res)=>{
+    axios.get('/api/customer/categories').then((res)=>{
       const result = Array.isArray(res.data?.data)
         ? res.data.data
         : Array.isArray(res.data)

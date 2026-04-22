@@ -138,7 +138,7 @@ class Myorders extends Component {
     };
 
     axios
-      .get('http://localhost:3000/api/customer/orders/customer/' + cid, config)
+      .get('/api/customer/orders/customer/' + cid, config)
       .then((res) => {
         this._hasFetchedOrders = true;
         const data = res.data;

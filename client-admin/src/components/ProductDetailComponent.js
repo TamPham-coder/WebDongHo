@@ -207,7 +207,7 @@ class ProductDetail extends Component {
   apiGetCategories() {
     const config = { headers: { 'x-access-token': this.context.token } };
     axios
-      .get('http://localhost:3000/api/admin/categories', config)
+      .get('/api/admin/categories', config)
       .then((res) => {
         const categories = Array.isArray(res.data?.data)
           ? res.data.data
@@ -225,7 +225,7 @@ class ProductDetail extends Component {
     this.setState({ loading: true, error: null });
     const config = { headers: { 'x-access-token': this.context.token } };
     axios
-      .post('http://localhost:3000/api/admin/products', prod, config)
+      .post('/api/admin/products', prod, config)
       .then((res) => {
         if (res.data) {
           alert('OK BABY!');
@@ -249,7 +249,7 @@ class ProductDetail extends Component {
     this.setState({ loading: true, error: null });
     const config = { headers: { 'x-access-token': this.context.token } };
     axios
-      .put('http://localhost:3000/api/admin/products/' + id, prod, config)
+      .put('/api/admin/products/' + id, prod, config)
       .then((res) => {
         if (res.data) {
           alert('OK BABY!');
@@ -272,7 +272,7 @@ class ProductDetail extends Component {
     this.setState({ loading: true, error: null });
     const config = { headers: { 'x-access-token': this.context.token } };
     axios
-      .delete('http://localhost:3000/api/admin/products/' + id, config)
+      .delete('/api/admin/products/' + id, config)
       .then((res) => {
         if (res.data) {
           alert('OK BABY!');
@@ -295,7 +295,7 @@ class ProductDetail extends Component {
   apiGetProducts() {
     const config = { headers: { 'x-access-token': this.context.token } };
     axios
-      .get('http://localhost:3000/api/admin/products?page=' + this.props.curPage, config)
+      .get('/api/admin/products?page=' + this.props.curPage, config)
       .then((res) => {
         const result = res.data?.data ?? res.data ?? {};
         const products = Array.isArray(result.products) ? result.products : [];
@@ -304,7 +304,7 @@ class ProductDetail extends Component {
         } else {
           // Nếu xóa hết ở trang hiện tại, lùi về 1 trang
           axios
-            .get('http://localhost:3000/api/admin/products?page=' + (this.props.curPage - 1), config)
+            .get('/api/admin/products?page=' + (this.props.curPage - 1), config)
             .then((res) => {
               const result = res.data?.data ?? res.data ?? {};
               this.props.updateProducts(Array.isArray(result.products) ? result.products : [], result.noPages || 0);

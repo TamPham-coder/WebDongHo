@@ -149,7 +149,7 @@ class Product extends Component {
   apiGetProducts(page) {
     this.setState({ loading: true, error: null });
     const config = { headers: { 'x-access-token': this.context.token } };
-    axios.get('http://localhost:3000/api/admin/products?page=' + page, config).then((res) => {
+    axios.get('/api/admin/products?page=' + page, config).then((res) => {
       const payload = res.data?.data ?? res.data ?? {};
       const products = Array.isArray(payload.products)
         ? payload.products

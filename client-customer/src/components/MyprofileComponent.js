@@ -200,7 +200,7 @@ class Myprofile extends Component {
     console.log('Updating customer:', id, customer);
 
     const config = { headers: { 'x-access-token': this.context.token } };
-    axios.put('http://localhost:3000/api/customer/customers/' + id, customer, config)
+    axios.put('/api/customer/customers/' + id, customer, config)
       .then((res) => {
         console.log('Update response full:', res);
         console.log('Update response data:', res.data);

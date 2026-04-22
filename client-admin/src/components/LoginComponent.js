@@ -108,7 +108,7 @@ class Login extends Component {
     this.setState({ loading: true, error: null });
     
     axios
-      .post('http://localhost:3000/api/admin/login', account)
+      .post('/api/admin/login', account)
       .then((res) => {
         const response = res.data || {};
         const payload = response.data ?? response;

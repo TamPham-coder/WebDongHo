@@ -220,7 +220,7 @@ class Customer extends Component {
     this.setState({ loading: true, error: null });
     const config = { headers: { 'x-access-token': this.context.token } };
     axios
-      .get('http://localhost:3000/api/admin/customers', config)
+      .get('/api/admin/customers', config)
       .then((res) => {
         const result = Array.isArray(res.data?.data)
           ? res.data.data
@@ -240,7 +240,7 @@ class Customer extends Component {
   apiGetOrdersByCustID = (cid) => {
     const config = { headers: { 'x-access-token': this.context.token } };
     axios
-      .get('http://localhost:3000/api/admin/orders/customer/' + cid, config)
+      .get('/api/admin/orders/customer/' + cid, config)
       .then((res) => {
         const result = Array.isArray(res.data?.data)
           ? res.data.data
@@ -258,7 +258,7 @@ class Customer extends Component {
     const body = { token: token };
     const config = { headers: { 'x-access-token': this.context.token } };
     axios
-      .put('http://localhost:3000/api/admin/customers/deactive/' + id, body, config)
+      .put('/api/admin/customers/deactive/' + id, body, config)
       .then((res) => {
         const result = res.data;
         if (result) {
@@ -275,7 +275,7 @@ class Customer extends Component {
 
   apiGetCustomerSendmail = (id, token) => {
     axios
-      .get(`http://localhost:3000/api/admin/customers/sendmail/${id}`, {
+      .get(`/api/admin/customers/sendmail/${id}`, {
         headers: { 'x-access-token': this.context.token }
       })
       .then(() => {

@@ -126,7 +126,7 @@ class ProductDetail extends Component {
   apiGetProduct(id) {
     this.setState({ loading: true, error: null, success: null });
     axios
-      .get('http://localhost:3000/api/customer/products/' + id)
+      .get('/api/customer/products/' + id)
       .then((res) => {
         const product = res.data?.data ?? res.data ?? null;
         this.setState({ product, loading: false, error: product ? null : 'Không tìm thấy sản phẩm.' });

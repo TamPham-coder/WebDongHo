@@ -228,7 +228,7 @@ class Order extends Component {
 
     // Reset all to PENDING first
     axios
-      .put(`http://localhost:3000/api/admin/orders/reset/all`, {}, config)
+      .put(`/api/admin/orders/reset/all`, {}, config)
       .then(() => {
         // After reset, load orders
         this.apiGetOrders();
@@ -271,7 +271,7 @@ class Order extends Component {
     };
 
     axios
-      .get('http://localhost:3000/api/admin/orders', config)
+      .get('/api/admin/orders', config)
       .then((res) => {
         const result = res.data;
         const orders = Array.isArray(result)
@@ -303,7 +303,7 @@ class Order extends Component {
     };
 
     axios
-      .put(`http://localhost:3000/api/admin/orders/status/${id}`, body, config)
+      .put(`/api/admin/orders/status/${id}`, body, config)
       .then((res) => {
         const result = res.data;
         if (result?.success) {

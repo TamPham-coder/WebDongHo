@@ -105,7 +105,7 @@ class Home extends Component {
 
   // apis
   apiGetNewProducts() {
-    axios.get('http://localhost:3000/api/customer/products/new').then((res) => {
+    axios.get('/api/customer/products/new').then((res) => {
       const result = Array.isArray(res.data?.data)
         ? res.data.data
         : Array.isArray(res.data)
@@ -121,7 +121,7 @@ class Home extends Component {
   }
 
   apiGetHotProducts() {
-    axios.get('http://localhost:3000/api/customer/products/hot').then((res) => {
+    axios.get('/api/customer/products/hot').then((res) => {
       const result = Array.isArray(res.data?.data)
         ? res.data.data
         : Array.isArray(res.data)

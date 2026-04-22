@@ -160,7 +160,7 @@ class Payment extends Component {
     };
 
     axios
-      .post('http://localhost:3000/api/customer/checkout', body, config)
+      .post('/api/customer/checkout', body, config)
       .then((res) => {
         const result = res.data;
         if (result) {

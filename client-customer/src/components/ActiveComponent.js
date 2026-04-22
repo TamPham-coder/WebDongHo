@@ -122,7 +122,7 @@ class Active extends Component {
     this.setState({ loading: true, error: null, success: null });
     const body = { id: id, token: token };
     axios
-      .post('http://localhost:3000/api/customer/active', body)
+      .post('/api/customer/active', body)
       .then((res) => {
         const result = res.data || {};
         const isActivated = result.success === true || !!result._id || !!result.data;

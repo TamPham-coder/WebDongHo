@@ -137,7 +137,7 @@ class Product extends Component {
     const hasCache = !!productCache[cacheKey];
     this.setState({ loading: !hasCache, error: null });
     axios
-      .get("http://localhost:3000/api/customer/products")
+      .get('/api/customer/products')
       .then((res) => {
         const products = Array.isArray(res.data)
           ? res.data
@@ -163,7 +163,7 @@ class Product extends Component {
     const hasCache = !!productCache[cacheKey];
     this.setState({ loading: !hasCache, error: null });
     axios
-      .get("http://localhost:3000/api/customer/products/category/" + cid)
+      .get('/api/customer/products/category/' + cid)
       .then((res) => {
         const products = Array.isArray(res.data)
           ? res.data
@@ -189,7 +189,7 @@ class Product extends Component {
     const hasCache = !!productCache[cacheKey];
     this.setState({ loading: !hasCache, error: null });
     axios
-      .get("http://localhost:3000/api/customer/products/search/" + keyword)
+      .get('/api/customer/products/search/' + keyword)
       .then((res) => {
         const products = Array.isArray(res.data)
           ? res.data

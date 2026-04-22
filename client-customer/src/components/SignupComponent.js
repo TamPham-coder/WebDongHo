@@ -140,7 +140,7 @@ class Signup extends Component {
     this.setState({ loading: true, error: null, success: null });
     
     axios
-      .post('http://localhost:3000/api/customer/signup', account)
+      .post('/api/customer/signup', account)
       .then((res) => {
         const result = res.data;
         this.setState({
