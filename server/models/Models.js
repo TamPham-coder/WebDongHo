@@ -37,13 +37,21 @@ const ItemSchema = mongoose.Schema({
   quantity: Number
 }, { versionKey: false, _id: false });
 
+const PaymentSchema = mongoose.Schema({
+  method: String,
+  status: String,
+  cardLast4: String,
+  transactionId: String
+}, { versionKey: false, _id: false });
+
 const OrderSchema = mongoose.Schema({
   _id: mongoose.Schema.Types.ObjectId,
   cdate: Number,
   total: Number,
   status: String,
   customer: CustomerSchema,
-  items: [ItemSchema]
+  items: [ItemSchema],
+  payment: PaymentSchema
 }, { versionKey: false });
 
 // models

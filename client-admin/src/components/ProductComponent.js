@@ -3,6 +3,8 @@ import React, { Component } from 'react';
 import MyContext from '../contexts/MyContext';
 import ProductDetail from './ProductDetailComponent';
 
+const productPageCache = {};
+
 class Product extends Component {
   static contextType = MyContext; // using this.context to access global state
   
@@ -12,7 +14,9 @@ class Product extends Component {
       products: [],
       noPages: 0,
       curPage: 1,
-      itemSelected: null
+      itemSelected: null,
+      error: null,
+      loading: false
     };
   }
 
@@ -47,7 +51,9 @@ class Product extends Component {
           <td>{item?.price ?? 'N/A'}</td>
           <td>{item?.cdate ? new Date(item.cdate).toLocaleString() : 'N/A'}</td>
           <td>{categoryName}</td>
-          <td><img src={imageSrc} width="100px" height="100px" alt={item?.name || 'Product'} /></td>
+          <td style={{ width: '120px', padding: '5px' }}>
+            <img className="product-image-thumb" loading="lazy" src={imageSrc} alt={item?.name || 'Product'} />
+          </td>
         </tr>
       );
     });
@@ -64,6 +70,16 @@ class Product extends Component {
       <div>
         <div className="float-left">
           <h2 className="text-center">PRODUCT LIST</h2>
+          {this.state.loading && (
+            <div style={{ backgroundColor: '#f3f0d7', color: '#4f432d', padding: '8px', marginBottom: '10px', borderRadius: '4px' }}>
+              Đang tải dữ liệu... Hiển thị ngay khi có dữ liệu cũ.
+            </div>
+          )}
+          {this.state.error && (
+            <div style={{ backgroundColor: '#f8d7da', color: '#721c24', padding: '10px', marginBottom: '10px', borderRadius: '4px' }}>
+              {this.state.error}
+            </div>
+          )}
           <table className="datatable" border="1">
             <tbody>
               <tr className="datatable">
@@ -96,11 +112,32 @@ class Product extends Component {
   }
 
   componentDidMount() {
+    const cacheKey = `page_${this.state.curPage}`;
+    const cachedPage = productPageCache[cacheKey];
+    if (cachedPage) {
+      this.setState({
+        products: cachedPage.products,
+        noPages: cachedPage.noPages,
+        loading: false,
+        error: null
+      });
+    }
     this.apiGetProducts(this.state.curPage);
   }
 
   // event-handlers
   lnkPageClick(index) {
+    const cacheKey = `page_${index}`;
+    const cachedPage = productPageCache[cacheKey];
+    if (cachedPage) {
+      this.setState({
+        products: cachedPage.products,
+        noPages: cachedPage.noPages,
+        curPage: index,
+        loading: false,
+        error: null
+      });
+    }
     this.apiGetProducts(index);
   }
 
@@ -110,6 +147,7 @@ class Product extends Component {
 
   // apis
   apiGetProducts(page) {
+    this.setState({ loading: true, error: null });
     const config = { headers: { 'x-access-token': this.context.token } };
     axios.get('http://localhost:3000/api/admin/products?page=' + page, config).then((res) => {
       const payload = res.data?.data ?? res.data ?? {};
@@ -118,14 +156,25 @@ class Product extends Component {
         : Array.isArray(payload)
         ? payload
         : [];
+      const nextPage = typeof payload.curPage === 'number' ? payload.curPage : page || 1;
       this.setState({ 
         products,
         noPages: typeof payload.noPages === 'number' ? payload.noPages : 0,
-        curPage: typeof payload.curPage === 'number' ? payload.curPage : page || 1 
+        curPage: nextPage,
+        loading: false,
+        error: null
       });
+      productPageCache[`page_${nextPage}`] = {
+        products,
+        noPages: typeof payload.noPages === 'number' ? payload.noPages : 0
+      };
     }).catch((error) => {
       console.error("API Error:", error);
-      this.setState({ products: [], noPages: 0 });
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.statusText ||
+        'Lỗi tải sản phẩm';
+      this.setState({ loading: false, products: [], noPages: 0, error: errorMessage });
     });
   }
 }

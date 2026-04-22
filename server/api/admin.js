@@ -135,17 +135,16 @@ router.delete("/categories/:id", JwtUtil.checkToken, async (req, res) => {
 // ===== PRODUCT ROUTES =====
 router.get("/products", JwtUtil.checkToken, async (req, res) => {
   try {
-    let products = await ProductDAO.selectAll();
     const sizePage = 4;
-    const noPages = Math.ceil(products.length / sizePage);
     const curPage = Math.max(1, parseInt(req.query.page) || 1);
-    const offset = (curPage - 1) * sizePage;
+    const totalProducts = await ProductDAO.count();
+    const noPages = Math.ceil(totalProducts / sizePage);
 
     if (curPage > noPages && noPages > 0) {
       return sendResponse(res, 400, false, "Page out of range");
     }
 
-    products = products.slice(offset, offset + sizePage);
+    const products = await ProductDAO.selectPage(curPage, sizePage);
     sendResponse(res, 200, true, "Products retrieved", {
       products,
       noPages,
@@ -278,7 +277,7 @@ router.put("/orders/status/:id", JwtUtil.checkToken, async (req, res) => {
     });
     if (error) return sendResponse(res, 400, false, error);
 
-    const validStatuses = ["PENDING", "APPROVED", "REJECTED", "CANCELED", "CANCELLED", "SHIPPED", "DELIVERED"];
+    const validStatuses = ["PENDING", "APPROVED", "REJECTED", "CANCELED", "CANCELLED", "SHIPPED", "DELIVERED", "COD_PENDING", "QR_PENDING"];
     const status = String(req.body.status || '').toUpperCase().trim();
     if (!validStatuses.includes(status)) {
       return sendResponse(res, 400, false, `Status must be one of: ${validStatuses.join(", ")}`);
@@ -308,6 +307,21 @@ router.get("/orders/customer/:cid", JwtUtil.checkToken, async (req, res) => {
   } catch (error) {
     console.error("Get customer orders error:", error);
     sendResponse(res, 500, false, "Failed to retrieve customer orders");
+  }
+});
+
+// Reset all orders to PENDING
+router.put("/orders/reset/all", JwtUtil.checkToken, async (req, res) => {
+  try {
+    const result = await OrderDAO.updateAll("PENDING");
+    if (result) {
+      sendResponse(res, 200, true, `Successfully reset ${result.modifiedCount} orders to PENDING`, result);
+    } else {
+      sendResponse(res, 400, false, "Failed to reset orders");
+    }
+  } catch (error) {
+    console.error("Reset all orders error:", error);
+    sendResponse(res, 500, false, "Failed to reset all orders");
   }
 });
 

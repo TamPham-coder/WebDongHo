@@ -21,7 +21,11 @@ class Order extends Component {
 
     const stats = orders.reduce(
       (acc, item) => {
-        const status = String(item.status || 'PENDING').toUpperCase();
+        let status = String(item.status || 'PENDING').toUpperCase();
+        // Group all *_PENDING statuses into PENDING
+        if (status.includes('PENDING')) {
+          status = 'PENDING';
+        }
         acc.total += 1;
         if (!acc.counts[status]) acc.counts[status] = 0;
         acc.counts[status] += 1;
@@ -43,6 +47,8 @@ class Order extends Component {
     const statusLabel = (status) => {
       const statusMap = {
         PENDING: 'warning',
+        COD_PENDING: 'warning',
+        QR_PENDING: 'warning',
         APPROVED: 'success',
         REJECTED: 'danger',
         CANCELED: 'danger',
@@ -114,7 +120,7 @@ class Order extends Component {
                       <td>{item.total || 0}</td>
                       <td>{renderStatusPill(item.status || 'PENDING')}</td>
                       <td>
-                        {item.status === 'PENDING' ? (
+                        {(item.status === 'PENDING' || String(item.status || '').toUpperCase().includes('PENDING')) ? (
                           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                             <button
                               type="button"
@@ -207,7 +213,31 @@ class Order extends Component {
   }
 
   componentDidMount() {
-    this.apiGetOrders();
+    this.apiResetAndLoadOrders();
+  }
+
+  apiResetAndLoadOrders = () => {
+    if (!this.context.token) {
+      this.setState({ loading: false, error: 'Token không hợp lệ. Vui lòng đăng nhập lại.', orders: [] });
+      return;
+    }
+
+    const config = {
+      headers: { 'x-access-token': this.context.token }
+    };
+
+    // Reset all to PENDING first
+    axios
+      .put(`http://localhost:3000/api/admin/orders/reset/all`, {}, config)
+      .then(() => {
+        // After reset, load orders
+        this.apiGetOrders();
+      })
+      .catch((err) => {
+        console.error('Reset orders error:', err);
+        // If reset fails, still load orders
+        this.apiGetOrders();
+      });
   }
 
   // event-handlers
@@ -229,9 +259,15 @@ class Order extends Component {
 
   // apis
   apiGetOrders = () => {
+    if (!this.context.token) {
+      this.setState({ loading: false, error: 'Token không hợp lệ. Vui lòng đăng nhập lại.', orders: [] });
+      return;
+    }
+
     this.setState({ loading: true, error: null });
     const config = {
-      headers: { 'x-access-token': this.context.token }
+      headers: { 'x-access-token': this.context.token },
+      timeout: 10000
     };
 
     axios
@@ -248,9 +284,13 @@ class Order extends Component {
         this.setState({ orders, loading: false });
       })
       .catch((err) => {
+        const message = err.code === 'ECONNABORTED'
+          ? 'Yêu cầu tải đơn hàng quá lâu, vui lòng thử lại.'
+          : err.response?.data?.message || 'Lỗi tải đơn hàng';
         this.setState({ 
-          error: err.response?.data?.message || "Lỗi tải đơn hàng",
-          loading: false 
+          error: message,
+          loading: false,
+          orders: []
         });
       });
   }

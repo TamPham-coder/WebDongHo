@@ -7,6 +7,8 @@ class Menu extends Component {
 
   lnkLogoutClick = () => {
     if (window.confirm('Are you sure you want to logout?')) {
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('adminUsername');
       this.context.setToken('');
       this.context.setUsername('');
     }

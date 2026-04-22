@@ -86,8 +86,8 @@ class ProductDetail extends Component {
                 </td>
               </tr>
               <tr>
-                <td colSpan="2">
-                  <img src={imgProduct} width="300px" height="300px" alt={txtName || "Product Preview"} />
+                <td colSpan="2" style={{ padding: '0', textAlign: 'center' }}>
+                  <img className="product-image-preview" loading="lazy" src={imgProduct} alt={txtName || "Product Preview"} />
                 </td>
               </tr>
             </tbody>

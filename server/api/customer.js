@@ -182,14 +182,45 @@ router.put('/customers/:id', JwtUtil.checkToken, async function (req, res) {
 // mycart - checkout
 router.post('/checkout', JwtUtil.checkToken, async function (req, res) {
   const now = new Date().getTime();
-  const { total, items, customer } = req.body;
+  const { total, items, customer, paymentInfo } = req.body;
+  const method = paymentInfo?.method || 'card';
+
+  let payment = {
+    method,
+    transactionId: `TXN${now}`
+  };
+
+  let status = 'PENDING';
+
+  if (method === 'card') {
+    payment = {
+      ...payment,
+      status: 'PAID',
+      cardLast4: paymentInfo?.cardNumber ? paymentInfo.cardNumber.slice(-4) : ''
+    };
+    status = 'PAID';
+  } else if (method === 'qr') {
+    payment = {
+      ...payment,
+      status: 'QR_PENDING',
+      qrCodeRef: `QR${now}`
+    };
+    status = 'QR_PENDING';
+  } else if (method === 'cod') {
+    payment = {
+      ...payment,
+      status: 'COD_PENDING'
+    };
+    status = 'COD_PENDING';
+  }
 
   const order = {
     cdate: now,
     total: total,
-    status: 'PENDING',
+    status: status,
     customer: customer,
-    items: items
+    items: items,
+    payment: payment
   };
 
   const result = await OrderDAO.insert(order);

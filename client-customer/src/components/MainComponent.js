@@ -12,6 +12,7 @@ const Active = lazy(() => import('./ActiveComponent'));
 const Login = lazy(() => import('./LoginComponent'));
 const Myprofile = lazy(() => import('./MyprofileComponent'));
 const Mycart = lazy(() => import('./MycartComponent'));
+const Payment = lazy(() => import('./PaymentComponent'));
 const Myorders = lazy(() => import('./MyordersComponent'));
 
 class Main extends Component {
@@ -33,6 +34,7 @@ class Main extends Component {
             <Route path='/login' element={<Login />} />
             <Route path='/myprofile' element={<Myprofile />} />
             <Route path='/mycart' element={<Mycart />} />
+            <Route path='/payment' element={<Payment />} />
             <Route path='/myorders' element={<Myorders />} />
             <Route path='*' element={<div className="text-center" style={{ padding: "40px" }}><h2>404 - Page Not Found</h2></div>} />
           </Routes>

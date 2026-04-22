@@ -97,9 +97,8 @@ class Mycart extends Component {
                     cursor: loading ? "not-allowed" : "pointer",
                     color: loading ? "#ccc" : "#007bff"
                   }}
-                  disabled={loading}
                 >
-                  {loading ? "CHECKING OUT..." : "CHECKOUT"}
+                  {loading ? "CHECKING OUT..." : "PAY NOW"}
                 </span>
               </td>
             </tr>
@@ -123,50 +122,17 @@ class Mycart extends Component {
   }
 
   lnkCheckoutClick() {
-    if (window.confirm('ARE YOU SURE?')) {
-      if (this.context.mycart.length > 0) {
-        const total = CartUtil.getTotal(this.context.mycart);
-        const items = this.context.mycart;
-        const customer = this.context.customer;
-
-        if (customer) {
-          this.apiCheckout(total, items, customer);
-        } else {
-          this.props.navigate('/login');
-        }
-      } else {
-        alert('Your cart is empty');
-      }
+    if (this.context.mycart.length === 0) {
+      alert('Your cart is empty');
+      return;
     }
-  }
 
-  // apis
-  apiCheckout(total, items, customer) {
-    this.setState({ loading: true, error: null });
-    const body = { total: total, items: items, customer: customer };
-    const config = {
-      headers: { 'x-access-token': this.context.token }
-    };
+    if (!this.context.customer) {
+      this.props.navigate('/login');
+      return;
+    }
 
-    axios
-      .post('http://localhost:3000/api/customer/checkout', body, config)
-      .then((res) => {
-        const result = res.data;
-        if (result) {
-          alert('OK BABY!');
-          this.context.setMycart([]);
-          this.props.navigate('/home');
-        } else {
-          this.setState({ error: 'Checkout failed', loading: false });
-        }
-      })
-      .catch((err) => {
-        console.error('Checkout error:', err);
-        this.setState({ 
-          error: err.response?.data?.message || 'Checkout failed. Please try again.',
-          loading: false 
-        });
-      });
+    this.props.navigate('/payment');
   }
 }
 

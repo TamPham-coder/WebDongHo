@@ -50,6 +50,16 @@ const ProductDAO = {
     return products;
   },
 
+  async count(query = {}) {
+    return await Models.Product.countDocuments(query).exec();
+  },
+
+  async selectPage(page, sizePage, query = {}, sort = { cdate: -1 }) {
+    const skip = (page - 1) * sizePage;
+    const products = await Models.Product.find(query).sort(sort).skip(skip).limit(sizePage).exec();
+    return products;
+  },
+
   // PHẦN THÊM
   async selectByKeyword(keyword) {
     const query = { name: { $regex: new RegExp(keyword, "i") } };

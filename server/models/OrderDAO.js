@@ -30,6 +30,16 @@ const OrderDAO = {
       { new: true }
     );
     return result;
+  },
+
+  async updateAll(newStatus) {
+    const newvalues = { status: newStatus };
+    const result = await Models.Order.updateMany(
+      {},
+      newvalues,
+      { new: true }
+    );
+    return result;
   }
 };
 
