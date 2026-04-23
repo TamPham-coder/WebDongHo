@@ -139,7 +139,7 @@ class CategoryDetail extends Component {
     this.setState({ loading: true, error: null });
     const config = { headers: { "x-access-token": this.context.token } };
     axios
-      .post("/api/admin/categories", cate, config)
+      .post("http://localhost:3000/api/admin/categories", cate, config)
       .then((res) => {
         const result = res.data;
         if (result) {
@@ -162,7 +162,7 @@ class CategoryDetail extends Component {
     this.setState({ loading: true, error: null });
     const config = { headers: { "x-access-token": this.context.token } };
     axios
-      .put("/api/admin/categories/" + id, cate, config)
+      .put("http://localhost:3000/api/admin/categories/" + id, cate, config)
       .then((res) => {
         const result = res.data;
         if (result) {
@@ -185,7 +185,7 @@ class CategoryDetail extends Component {
     this.setState({ loading: true, error: null });
     const config = { headers: { "x-access-token": this.context.token } };
     axios
-      .delete("/api/admin/categories/" + id, config)
+      .delete("http://localhost:3000/api/admin/categories/" + id, config)
       .then((res) => {
         const result = res.data;
         if (result) {
@@ -207,11 +207,11 @@ class CategoryDetail extends Component {
   apiGetCategories = () => {
     const config = { headers: { "x-access-token": this.context.token } };
     axios
-      .get("/api/admin/categories", config)
+      .get("http://localhost:3000/api/admin/categories", config)
       .then((res) => {
-        const result = res.data;
-        if (result && this.props.updateCategories) {
-          this.props.updateCategories(result);
+        const categories = Array.isArray(res.data?.data) ? res.data.data : [];
+        if (categories.length >= 0 && this.props.updateCategories) {
+          this.props.updateCategories(categories);
         }
       })
       .catch((err) => {

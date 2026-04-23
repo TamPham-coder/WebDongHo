@@ -1,9 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const path = require('path');
 const app = express();
-
+const path = require('path');
 // Middleware
 app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' }));
@@ -29,7 +28,6 @@ app.use('/api/customer', require('./api/customer.js'));
 require('./utils/MongooseUtil');
 
 // ================= DEPLOYMENT =================
-const path = require('path');
 
 // admin static
 app.use('/admin', express.static(path.resolve(__dirname, '../client-admin/build')));

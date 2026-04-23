@@ -14,6 +14,7 @@ class Category extends Component {
   }
 
   render() {
+    console.log("CategoryComponent render - categories:", this.state.categories);
     const cates = this.state.categories.map((item) => {
       return (
         <tr
@@ -56,6 +57,7 @@ class Category extends Component {
   };
 
   componentDidMount() {
+    console.log("CategoryComponent mounted, token:", this.context.token);
     this.apiGetCategories();
   }
 
@@ -66,13 +68,12 @@ class Category extends Component {
   apiGetCategories() {
     const config = { headers: { "x-access-token": this.context.token } };
     axios
-      .get("api/admin/categories", config)
+      .get("http://localhost:3000/api/admin/categories", config)
       .then((res) => {
-        const result = Array.isArray(res.data?.data)
-          ? res.data.data
-          : Array.isArray(res.data)
-          ? res.data
-          : [];
+        console.log("API Response:", res.data);
+        const categories = res.data?.data || [];
+        const result = Array.isArray(categories) ? categories : [];
+        console.log("Categories to set:", result);
         this.setState({ categories: result });
       })
       .catch((err) => {
