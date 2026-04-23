@@ -68,7 +68,7 @@ class Category extends Component {
   apiGetCategories() {
     const config = { headers: { "x-access-token": this.context.token } };
     axios
-      .get("http://localhost:3000/api/admin/categories", config)
+      .get("/api/admin/categories", config)
       .then((res) => {
         console.log("API Response:", res.data);
         const categories = res.data?.data || [];
