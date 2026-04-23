@@ -28,9 +28,10 @@ const EmailUtil = {
 
       transporter.sendMail(mailOptions, function (err, result) {
         if (err) {
-          console.error('EmailUtil.send error:', err);
-          return reject(err);
+          console.error('EmailUtil.send error:', err.message || err);
+          return reject(new Error('Failed to send email: ' + (err.message || 'Unknown error')));
         }
+        console.log('Email sent successfully to:', email);
         resolve(true);
       });
     });

@@ -51,37 +51,55 @@ router.get('/products/:id', async function (req, res) {
 
 // customer signup
 router.post('/signup', async function (req, res) {
-  const { username, password, name, phone, email } = req.body;
-  const dbCust = await CustomerDAO.selectByUsernameOrEmail(username, email);
+  try {
+    const { username, password, name, phone, email } = req.body;
+    const dbCust = await CustomerDAO.selectByUsernameOrEmail(username, email);
 
-  if (dbCust) {
-    res.json({ success: false, message: 'Exists username or email' });
-  } else {
-    const now = new Date().getTime();
-    const token = CryptoUtil.md5(now.toString());
-
-    const newCust = {
-      username,
-      password,
-      name,
-      phone,
-      email,
-      active: 0,
-      token
-    };
-
-    const result = await CustomerDAO.insert(newCust);
-
-    if (result) {
-      const send = await EmailUtil.send(email, result._id, token);
-      if (send) {
-        res.json({ success: true, message: 'Please check email' });
-      } else {
-        res.json({ success: false, message: 'Email failure' });
-      }
+    if (dbCust) {
+      res.json({ success: false, message: 'Username or email already exists' });
     } else {
-      res.json({ success: false, message: 'Insert failure' });
+      const now = new Date().getTime();
+      const token = CryptoUtil.md5(now.toString());
+
+      const newCust = {
+        username,
+        password,
+        name,
+        phone,
+        email,
+        active: 1,  // Auto-activate account
+        token
+      };
+
+      const result = await CustomerDAO.insert(newCust);
+
+      if (result) {
+        // Try to send email but don't block signup
+        try {
+          await EmailUtil.send(email, result._id, token);
+          console.log('Verification email sent to:', email);
+        } catch (emailErr) {
+          console.warn('Email send warning:', emailErr.message);
+        }
+        
+        res.json({ 
+          success: true, 
+          message: 'Sign-up successful! Your account is ready to use. You can login now.',
+          data: {
+            _id: result._id,
+            token: token,
+            username: result.username,
+            name: result.name,
+            email: result.email
+          }
+        });
+      } else {
+        res.json({ success: false, message: 'Failed to create account' });
+      }
     }
+  } catch (err) {
+    console.error('Signup error:', err);
+    res.status(500).json({ success: false, message: 'Server error. Please try again later.' });
   }
 });
 

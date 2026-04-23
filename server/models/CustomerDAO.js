@@ -50,6 +50,11 @@ const CustomerDAO = {
   async selectByID(_id) {
     const customer = await Models.Customer.findById(_id).exec();
     return customer;
+  },
+
+  async delete(_id) {
+    const result = await Models.Customer.findByIdAndDelete(_id);
+    return result;
   }
 
 };

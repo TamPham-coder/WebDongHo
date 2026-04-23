@@ -4,7 +4,7 @@ const MyConstants = {
   DB_PASS: process.env.DB_PASS || '154623456Dx',
   DB_DATABASE: process.env.DB_DATABASE || 'Shoppingonline',
   EMAIL_USER: process.env.EMAIL_USER || 'phamchitam965@gmail.com',
-  EMAIL_PASS: process.env.EMAIL_PASS || '0902914057TamPham', // Use Gmail app password if 2FA is enabled
+  EMAIL_PASS: process.env.EMAIL_PASS || 'YOUR_16_CHAR_APP_PASSWORD_HERE', // PASTE YOUR 16-CHAR APP PASSWORD HERE
   JWT_SECRET: process.env.JWT_SECRET || 'cdbeda51af5cf02dee1a196f11602a0f0ab12156d6e6f97078df60225bb916017e6c1912de18e46add8d8e6927ebe16eb5b34753b834dfb083b202e29d709c39',
   JWT_EXPIRES: process.env.JWT_EXPIRES || '3600000' // in milliseconds
 };
