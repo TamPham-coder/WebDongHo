@@ -42,7 +42,7 @@ class Product extends Component {
 
     const prods = products.filter(Boolean).map((item) => {
       const categoryName = item?.category?.name || 'N/A';
-      const imageSrc = item?.image ? `data:image/jpg;base64,${item.image}` : '/images/watch1.jpg';
+      const imageSrc = item?.image ? `data:image/jpg;base64,${item.image}` : '/admin/images/watch1.jpg';
 
       return (
         <tr key={item._id || Math.random()} className="datatable" onClick={() => this.trItemClick(item)}>

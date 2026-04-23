@@ -6,9 +6,9 @@ class Home extends Component {
     this.state = {
       currentIndex: 0,
       images: [
-        '/images/watch1.jpg',
-        '/images/Dong-ho-Tsar-Bomba-TB8208D-13-1485749575.jpg',
-        '/images/dong-ho-thuy-sy-3415868203625-1681837772.jpg',
+        '/admin/images/watch1.jpg',
+        '/admin/images/Dong-ho-Tsar-Bomba-TB8208D-13-1485749575.jpg',
+        '/admin/images/dong-ho-thuy-sy-3415868203625-1681837772.jpg',
       ],
       imageErrors: {} // Track lỗi từng ảnh
     };
