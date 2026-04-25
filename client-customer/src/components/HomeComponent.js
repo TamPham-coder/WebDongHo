@@ -42,11 +42,11 @@ class Home extends Component {
     const newprods = Array.isArray(this.state.newprods) ? this.state.newprods : [];
     const hotprods = Array.isArray(this.state.hotprods) ? this.state.hotprods : [];
 
-    const newprodsList = newprods.map((item) => {
+    const newprodsList = newprods.filter((item) => item && item._id).map((item) => {
       return (
-        <div key={item._id || Math.random()} className="inline">
+        <div key={item._id} className="inline">
           <figure>
-            <Link to={'/product/' + (item._id || '')}>
+            <Link to={'/product/' + item._id}>
               <img loading="lazy" src={item.image ? 'data:image/jpg;base64,' + item.image : '/images/watch1.jpg'} width="300px" height="300px" alt={item.name || 'Product'} />
             </Link>
             <figcaption className="text-center">
@@ -57,11 +57,11 @@ class Home extends Component {
       );
     });
 
-    const hotprodsList = hotprods.map((item) => {
+    const hotprodsList = hotprods.filter((item) => item && item._id).map((item) => {
       return (
-        <div key={item._id || Math.random()} className="inline">
+        <div key={item._id} className="inline">
           <figure>
-            <Link to={'/product/' + (item._id || '')}>
+            <Link to={'/product/' + item._id}>
               <img loading="lazy" src={item.image ? 'data:image/jpg;base64,' + item.image : '/images/watch1.jpg'} width="300px" height="300px" alt={item.name || 'Product'} />
             </Link>
             <figcaption className="text-center">
